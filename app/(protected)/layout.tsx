@@ -1,28 +1,38 @@
-import { getSession } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/dashboard/sidebar'
-import { Header } from '@/components/dashboard/header'
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { Header } from "@/components/dashboard/header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { DataTable } from "@/components/data-table";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { SectionCards } from "@/components/section-cards";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const session = await getSession()
-  
+  const session = await getSession();
+
   if (!session?.userId) {
-    redirect('/login')
+    redirect("/login");
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar userRole={session.role} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={session} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+    <SidebarProvider>
+      <AppSidebar
+        variant="inset"
+        userRole={session.role as "admin" | "principal" | "teacher"}
+      />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2 p-4">
+            {children}
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
