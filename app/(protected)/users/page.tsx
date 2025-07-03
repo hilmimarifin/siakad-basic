@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { Plus, Edit, Trash2 } from 'lucide-react'
+import { DataTable } from '@/components/data-table'
+import { ColumnDef } from '@tanstack/react-table'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface User {
   id: string
@@ -136,6 +139,55 @@ export default function UsersPage() {
     }
   }
 
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: 'full_name',
+      header: 'Name',
+      cell: ({ row }) => <span className="font-medium">{row.original.full_name}</span>,
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => row.original.email,
+    },
+    {
+      accessorKey: 'role',
+      header: 'Role',
+      cell: ({ row }) => (
+        <span className="capitalize px-2 py-1 bg-gray-100 rounded-full text-xs">
+          {row.original.role}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Created',
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(row.original)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   if (isLoading) {
     return <div>Loading...</div>
   }
@@ -223,58 +275,8 @@ export default function UsersPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>System Users</CardTitle>
-          <CardDescription>
-            All registered users in the system
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.full_name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <span className="capitalize px-2 py-1 bg-gray-100 rounded-full text-xs">
-                      {user.role}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(user)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable<User> data={users} columns={columns} />
         </CardContent>
       </Card>
     </div>

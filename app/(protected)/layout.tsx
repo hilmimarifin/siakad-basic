@@ -1,12 +1,8 @@
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/dashboard/header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { DataTable } from "@/components/data-table";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { SectionCards } from "@/components/section-cards";
-import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function DashboardLayout({
   children,
