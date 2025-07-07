@@ -49,8 +49,6 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.log("error>>>>>>>>>>", error);
-      
       if (error.code === '23505') {
         return NextResponse.json({ message: 'Email already exists' }, { status: 400 })
       }

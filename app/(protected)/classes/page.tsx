@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -12,14 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,6 +17,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -35,7 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Edit, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Class {
   id: string;
@@ -46,6 +40,7 @@ interface Class {
     full_name: string;
   };
   created_at: string;
+  academic_year: string;
 }
 
 interface Teacher {
@@ -63,6 +58,7 @@ export default function ClassesPage() {
     name: "",
     grade_level: "",
     homeroom_teacher_id: "",
+    academic_year: "",
   });
   const { toast } = useToast();
 
@@ -130,7 +126,7 @@ export default function ClassesPage() {
         });
         setIsDialogOpen(false);
         setEditingClass(null);
-        setFormData({ name: "", grade_level: "", homeroom_teacher_id: "" });
+        setFormData({ name: "", grade_level: "", homeroom_teacher_id: "", academic_year: "" });
         fetchClasses();
       } else {
         const error = await response.json();
@@ -155,6 +151,7 @@ export default function ClassesPage() {
       name: classItem.name,
       grade_level: classItem.grade_level,
       homeroom_teacher_id: classItem.homeroom_teacher_id || "",
+      academic_year: classItem.academic_year || "",
     });
     setIsDialogOpen(true);
   };
@@ -193,6 +190,61 @@ export default function ClassesPage() {
     return <div>Loading...</div>;
   }
 
+  const columns: ColumnDef<Class>[] = [
+    {
+      accessorKey: "name",
+      header: "Nama Kelas",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+    },
+    {
+      accessorKey: "grade_level",
+      header: "Kelas",
+      cell: ({ row }) => row.original.grade_level,
+    },
+    {
+      accessorKey: "homeroom_teacher",
+      header: "Guru Kelas",
+      cell: ({ row }) => (
+        <span className="capitalize px-2 py-1 bg-gray-100 rounded-full text-xs">
+          {row.original.homeroom_teacher?.full_name}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "academic_year",
+      header: "Tahun Ajaran",
+      cell: ({ row }) => row.original.academic_year,
+    },
+    {
+      accessorKey: "created_at",
+      header: "Dibuat",
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(row.original)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -211,6 +263,7 @@ export default function ClassesPage() {
                   name: "",
                   grade_level: "",
                   homeroom_teacher_id: "",
+                  academic_year: "",
                 });
               }}
             >
@@ -243,10 +296,28 @@ export default function ClassesPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="academic_year">Tahun Ajaran</Label>
+                <Input
+                  id="academic_year"
+                  type="text"
+                  pattern="^\d{4}/\d{4}$"
+                  value={formData.academic_year}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      academic_year: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="grade_level">Grade Level</Label>
                 <Input
                   id="grade_level"
                   value={formData.grade_level}
+                  type="number"
                   onChange={(e) =>
                     setFormData({ ...formData, grade_level: e.target.value })
                   }
@@ -298,51 +369,7 @@ export default function ClassesPage() {
           <CardDescription>All classes in the school</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Class Name</TableHead>
-                <TableHead>Grade Level</TableHead>
-                <TableHead>Homeroom Teacher</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {classes.map((classItem) => (
-                <TableRow key={classItem.id}>
-                  <TableCell className="font-medium">
-                    {classItem.name}
-                  </TableCell>
-                  <TableCell>{classItem.grade_level}</TableCell>
-                  <TableCell>
-                    {classItem.homeroom_teacher?.full_name || "Not assigned"}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(classItem.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(classItem)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(classItem.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable data={classes} columns={columns} />
         </CardContent>
       </Card>
     </div>
